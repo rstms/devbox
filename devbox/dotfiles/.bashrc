@@ -46,3 +46,5 @@ fi
 export PAGER=less
 
 PS1='\u@\h:\w\$ '
+
+hostname | figlet -f slant

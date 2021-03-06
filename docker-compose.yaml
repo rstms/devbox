@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  devbox:
+    image: rstms/devbox:latest
+    hostname: ${HOSTNAME:-devbox}
+    build:
+      context: devbox
+      args:
+        USER: ${USER:-dev}
+        UID: ${UID:-1000}
+        DOCKER_GID: ${DOCKER_GID:-1000}
+    volumes:
+      - ${HOME}/.ssh:/home/${USER}/.ssh
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PWD}/src:/home/${USER}/src
+    restart: unless-stopped
+    env_file: .env

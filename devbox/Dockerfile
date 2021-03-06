@@ -1,14 +1,19 @@
+FROM segment/chamber:2.7.5 as chamber
+
 FROM alpine:3.13
 
+COPY --from=chamber /chamber /usr/local/bin/chamber
+
 ARG UID
-ARG USERNAME
+ARG USER
 ARG DOCKER_GID
-ENV USERNAME=$USERNAME
+ENV USER=$USER
 
 RUN apk update && apk add \
  sudo curl git make bash vim less shadow openssh-client \
  util-linux coreutils binutils findutils grep gawk sed \
- mandoc man-pages mandoc-apropos
+ mandoc man-pages mandoc-apropos \
+ figlet
 
 # python, pip
 RUN \
@@ -19,22 +24,16 @@ RUN \
   python --version && \
   pip3 --version
 
-# docker, docker-compose
-ARG COMPOSE_VERSION=1.28.5
-ARG COMPOSE_URL="https://github.com/docker/compose/releases/download"
-ARG COMPOSE_VERSION="1.28.5"
-ARG COMPOSE_FILE="docker-compose-Linux-x86_64"
-ARG COMPOSE_BIN="/usr/local/bin/docker-compose"
+# docker-cli and docker-compose
 RUN \
-  apk add docker-cli libffi-dev openssl-dev gcc libc-dev rust cargo && \
-  curl -L "${COMPOSE_URL}/${COMPOSE_VERSION}/${COMPOSE_FILE}" -o "${COMPOSE_BIN}" && \
-  chmod +x "${COMPOSE_BIN}"
+  apk add docker-cli libffi-dev openssl-dev gcc libc-dev rust cargo python3-dev && \
+  pip install docker-compose
 
 RUN \
   addgroup -g $DOCKER_GID docker && \
-  adduser $USERNAME -u $UID -D -s /bin/bash && \
-  addgroup $USERNAME docker && \
-  addgroup $USERNAME wheel && \
+  adduser $USER -u $UID -D -s /bin/bash && \
+  addgroup $USER docker && \
+  addgroup $USER wheel && \
   echo "%wheel ALL=(ALL) NOPASSWD: ALL">/etc/sudoers.d/wheel-group
 
 COPY scripts/ /usr/local/bin
@@ -46,11 +45,11 @@ RUN \
   ln -s /usr/bin/vim /usr/bin/vi && \
   update-apk-doc
 
-WORKDIR /home/$USERNAME
+WORKDIR /home/$USER
 COPY dotfiles/ .
-RUN chown -R $USERNAME.$USERNAME .
+RUN chown -R $USER.$USER .
 
-USER $USERNAME
+USER $USER
 
 ENTRYPOINT [ "/bin/sh", "-c" ]
 CMD [ "/bin/bash --login", "# NOP kludge" ]

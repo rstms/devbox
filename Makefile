@@ -1,25 +1,42 @@
 #
-# create and run a minimal alpine-based dev image
+#  An alpine-based dev image for python/docker/aws work
+#
+#   MIT Licensed
+#
+#   git@github.com/rstms/devbox
+#   mkrueger@rstms.net
 #
 
+# Defaults:
 # host ~/.ssh is mounted into to the container 
 # docker-cli is configured for the host docker engine via the unix socket
+# ./src is bind-mounted into container
 
-IMAGE=$(shell basename $(shell pwd))
-USERNAME=$(shell id -un)
-UID=$(shell id -u)
-DOCKER_GID=$(shell grep docker /etc/group | cut -d: -f3) \
+PROJECT_NAME=rstms/devbox
 
-run: build
-	docker run -it --rm \
-	  -v ~/.ssh://home/${USERNAME}/.ssh \
-	  -v /var/run/docker.sock:/var/run/docker.sock \
-	  ${IMAGE}:latest
+all: run
 
-build:
-	docker build \
-	  --tag ${IMAGE} \
-	  --build-arg USERNAME=${USERNAME} \
-	  --build-arg UID=${UID} \
-	  --build-arg DOCKER_GID=${DOCKER_GID} \
-	  dev
+config: dotenv
+
+dotenv:
+	dotenv set UID $(shell id -u)
+	dotenv set USERNAME $(shell id -un)
+	dotenv set DOCKER_GID $(shell grep docker /etc/group | cut -d: -f3)
+	dotenv set VERSION $(shell cat VERSION)
+
+run:
+	docker-compose up --build devbox
+
+build: dotenv
+	docker-compose build
+
+rebuild: dotenv
+	docker-compose build --no-cache
+
+# todo: determine if latest local image is newer than dockerhub
+publish:
+	$(if $(wildcard ~/.docker/config.json),,$(error docker-publish failed; ~/.docker/config.json required))
+	@echo publishing latest image to dockerhub
+	docker login
+	docker push ${PROJECT_NAME}:$(shell cat VERSION)
+	docker push ${PROJECT_NAME}:latest
