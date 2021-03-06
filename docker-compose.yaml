@@ -2,7 +2,7 @@ version: "3"
 
 services:
   devbox:
-    image: rstms/devbox:latest
+    image: rstms/devbox:${VERSION}
     hostname: ${HOSTNAME:-devbox}
     build:
       context: devbox
