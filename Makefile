@@ -43,7 +43,7 @@ publish: build
 
 define bump
 bumpversion $1;
-dotenv set VERSION $(shell cat VERSION);
+dotenv set VERSION $$(cat VERSION);
 endef
 
 bump-patch:
