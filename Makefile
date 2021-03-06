@@ -42,8 +42,8 @@ publish: build
 	docker push ${PROJECT_NAME}:latest
 
 define bump
-bumpversion $1
-dotenv set VERSION $(shell cat VERSION)
+bumpversion $1;
+dotenv set VERSION $(shell cat VERSION);
 endef
 
 bump-patch:
