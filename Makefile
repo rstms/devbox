@@ -40,3 +40,12 @@ publish:
 	docker login
 	docker push ${PROJECT_NAME}:$(shell cat VERSION)
 	docker push ${PROJECT_NAME}:latest
+
+bump-patch:
+	bumpversion patch
+
+bump-minor:
+	bumpversion patch
+
+bump-major:
+	bumpversion patch
