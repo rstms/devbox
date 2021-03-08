@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env -S /bin/bash --login 
 
 # if run with no args, exec into a clean shell
-[[ $# > 0 ]] || exec bash --login
+[[ $# > 0 ]] || exec bash -i --login
 
 expand-args() { for i; do echo -n "${i@Q} "; done; }
 
@@ -29,7 +29,7 @@ docker run -it --rm \
 END
 ;;
 
---help) cat <<END
+--help) cat <<'END'
 
 devbox comands:
 
@@ -43,11 +43,15 @@ devbox comands:
 
  (anything else)   pass as arguments to /bin/bash
 
+Local script installation command:
+
+eval $(docker run --rm rstms/devbox:latest --install-dev)
+
 END
 ;;
 
---install-dev) cat <<END
-docker run -i --rm rstms/devbox:latest --template >/tmp/dev && chmod +x /tmp/dev && sudo mv /tmp/dev /usr/local/bin
+--install-dev) cat <<'END'
+docker run --rm rstms/devbox:latest --template|(F=/usr/local/bin/dev;sudo tee $F>/dev/null;sudo chmod +x $F)
 END
 ;;
 
