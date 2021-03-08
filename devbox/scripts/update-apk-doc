@@ -1,7 +1,0 @@
-#!/bin/bash
-FILTER='s/.*{\(.*\)}.*$/\1/'
-DOCS=""
-for PKG in $(apk list --installed | sed -e $FILTER | sort | uniq); do
-  apk info >/tmp/info 2>&1 ${PKG}-doc && DOCS="$DOCS ${PKG}-doc"
-done
-sudo apk add $DOCS

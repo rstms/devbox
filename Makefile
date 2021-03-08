@@ -14,7 +14,11 @@
 
 PROJECT_NAME=rstms/devbox
 
-all: run
+DEV=./devbox/scripts/dev
+
+
+help:
+	@echo Targets: config dev run build rebuild publish bump-major bump-minor bump-patch
 
 config:
 	dotenv set UID $$(id -u)
@@ -22,8 +26,11 @@ config:
 	dotenv set DOCKER_GID $$(grep docker /etc/group | cut -d: -f3)
 	dotenv set VERSION $$(cat VERSION)
 
+dev:
+	@${DEV}
+
 run:
-	./dev
+	docker run -it --rm ${PROJECT_NAME}:latest 
 
 build:
 	docker-compose build

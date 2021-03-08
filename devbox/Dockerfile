@@ -15,6 +15,13 @@ RUN apk update && apk add \
  mandoc man-pages mandoc-apropos \
  figlet
 
+RUN \
+  DOCS=""; \ 
+  for PKG in $(apk list --installed | sed -e 's/.*{\(.*\)}.*$/\1/' | sort | uniq); do \
+    apk info >/tmp/info 2>&1 ${PKG}-doc && DOCS="${DOCS} ${PKG}-doc"; \
+  done && \
+  sudo apk add $DOCS
+
 # python, pip
 RUN \
   apk add python3 && \
@@ -36,14 +43,13 @@ RUN \
   addgroup $USER wheel && \
   echo "%wheel ALL=(ALL) NOPASSWD: ALL">/etc/sudoers.d/wheel-group
 
-COPY scripts/ /usr/local/bin
+COPY scripts/ /usr/local/bin/
 COPY dotfiles/.vimrc /root/
 
 RUN \
   echo "set bell-style none" >>/etc/inputrc && \
   rm /usr/bin/vi && \
-  ln -s /usr/bin/vim /usr/bin/vi && \
-  update-apk-doc
+  ln -s /usr/bin/vim /usr/bin/vi
 
 WORKDIR /home/$USER
 COPY dotfiles/ .
@@ -51,5 +57,11 @@ RUN chown -R $USER.$USER .
 
 USER $USER
 
-ENTRYPOINT [ "/bin/sh", "-c" ]
-CMD [ "/bin/bash --login", "# NOP kludge" ]
+#ENTRYPOINT [ "/bin/sh", "-c" ]
+#CMD [ "/bin/bash --login", "# NOP kludge" ]
+
+#ENTRYPOINT [ "/bin/bash", "--login", "-c" ]
+#CMD [ "/bin/bash --login", "# NOP kludge" ]
+
+ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
+CMD [ "bash" ]

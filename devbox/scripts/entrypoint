@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# if run with no args, exec into a clean shell
+[[ $# > 0 ]] || exec bash --login
+
+expand-args() { for i; do echo -n "${i@Q} "; done; }
+
+cd-project-dir() {
+  SRC="$(find /home -maxdepth 2 -type d -name src)"
+  PROJECT="$(find ${SRC} -maxdepth 1 -type d |tail -n +2|head -1)"
+  cd $PROJECT
+}
+
+
+case $1 in 
+--template) cat << 'END'
+#!/bin/bash
+IMAGE="rstms/devbox:${DEV_VERSION:-latest}"
+DEV_USER="${DEV_USER:-$(id -un)}"
+DEV_SRC="${DEV_SRC:-$(pwd)/src}"
+DEV_SSH_DIR="${DEV_SSH_DIR:-${HOME}/.ssh}"
+docker run -it --rm \
+  --env-file .env \
+  -h "${DEV_HOSTNAME:-devbox}" \
+  -v "${DEV_SSH_DIR}:/home/${DEV_USER}/.ssh" \
+  -v "/var/run/docker.sock:/var/run/docker.sock" \
+  -v "${DEV_SRC}:/home/${DEV_USER}/src" \
+  ${IMAGE} "$@"
+END
+;;
+
+--help) cat <<END
+
+devbox comands:
+
+ --help            display this message
+ 
+ --template        output template for host 'dev' script
+
+ --install-dev     output 'dev' script host installation command
+
+ make [arg]...     cd /home/{user}/src/{project} and run make {args}
+
+ (anything else)   pass as arguments to /bin/bash
+
+END
+;;
+
+--install-dev) cat <<END
+docker run -i --rm rstms/devbox:latest --template >/tmp/dev && chmod +x /tmp/dev && sudo mv /tmp/dev /usr/local/bin
+END
+;;
+
+make) 
+  cd-project-dir;
+  bash -c "$(expand-args "$@")" ;;
+
+*) exec /bin/bash -c "$(expand-args "$@")"
+esac
