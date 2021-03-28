@@ -31,6 +31,13 @@ RUN \
   python --version && \
   pip3 --version
 
+# install python packages
+RUN pip3 install \
+  arrow \
+  click \
+  pytest \
+  requests
+
 # docker-cli and docker-compose
 RUN \
   apk add docker-cli libffi-dev openssl-dev gcc libc-dev rust cargo python3-dev && \
